@@ -1,0 +1,329 @@
+---
+openapi: 3.0.0
+info:
+  title: Request API Documentation
+  description: Request API Solution
+  contact:
+    name: Simbrella LLC
+    url: http://www.simbrella.com
+    email: contact@simbrella.com
+  version: v1.0.0
+externalDocs:
+  description: ""
+  url: ""
+servers:
+- url: https://virtserver.swaggerhub.com/rustamisb/TestAPI2/v1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: http://127.0.0.1:10031/microlending
+  description: Project request API
+security:
+- basicAuth: []
+tags:
+- name: CheckEligibility
+- name: ProvideLoan
+- name: GetLoanInformation
+paths:
+  /checkEligibility:
+    post:
+      tags:
+      - CheckEligibility
+      summary: CheckEligibilityRequest
+      description: |
+        This method is called by a client in order to initiate scoring for a specific customer.
+        |  |  |
+        | ------- | --------|
+        | **Direction** | Client to Simbrella |
+        | **Type** | SYNC |
+        | **Function Name** | CheckEligibility |
+        | **Endpoint** | http://127.0.01:10031/microlending/checkEligibility |
+        | **Request Type** | POST |
+      operationId: CheckEligibilityRequest
+      requestBody:
+        description: |
+          **CheckEligibilityRequest**
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/checkEligibility_body'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+  /provideLoan:
+    post:
+      tags:
+      - ProvideLoan
+      summary: ProvideLoanRequest
+      description: |
+        This method is called by client in order to initiate provision routine within Simbrella system.
+        |  |  |
+        | ------- | --------|
+        | **Direction** | Client to Simbrella |
+        | **Type** | SYNC |
+        | **Function Name** | ProvideLoan |
+        | **Endpoint** | http://127.0.01:10031/microlending/checkEligibility |
+        | **Request Type** | POST |
+      operationId: ProvideLoanRequest
+      parameters:
+      - name: requestId
+        in: query
+        description: Unique identifier of request in client's system
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: momo-202111230003585948306
+      - name: sessionId
+        in: query
+        description: |
+          **sessionId** field from related **CheckEligibilityRequest** within session of which it’s called
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: ses-202112170001354325213
+      - name: msisdn
+        in: query
+        description: User’s mobile number in an international format
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: "22677691111"
+      - name: requestedAmount
+        in: query
+        description: Amount of loan that requested by user
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: decimal
+          example: 50000
+      - name: collectionType
+        in: query
+        description: |
+          Type of collection that user is preferred:
+          * 0 - Collection ASAP
+          * 1 - Collection after XX days or multi-month
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          example: 1
+      - name: productId
+        in: query
+        description: |
+          Identifier of a product chosen by user. Product id is mapped to a certain product selected by customer from list of available products
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: integer
+          example: 101
+      - name: channel
+        in: query
+        description: |
+          Request Channel
+          * ussd - USSD channel
+          * sms - SMS channel
+          * app - Mobile Application channel
+          * web - WEB application channel
+          * other - Other request channel
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+components:
+  schemas:
+    inline_response_200_offers:
+      required:
+      - amount
+      - dueDates
+      - installmentAmount
+      - interestFee
+      - serviceFee
+      - totalRepaymentAmount
+      properties:
+        amount:
+          type: number
+          description: Amount of loan customer is eligible for
+          format: decimal
+          example: 50000
+        serviceFee:
+          type: number
+          description: Fee of mobile loan(tax included)
+          format: decimal
+          example: 585
+        interestFee:
+          type: number
+          description: Fee for a loan based on interest rate
+          format: decimal
+          example: 87.75
+        dueDates:
+          type: array
+          description: Array of due dates
+          items:
+            type: string
+            format: date-time
+        installmentAmount:
+          type: number
+          description: Amount to be paid each month, including fees
+          format: decimal
+          example: 50672.75
+        totalRepaymentAmount:
+          type: number
+          description: Amount To be paid for current credit with all fees applied
+          format: decimal
+          example: 50672.75
+    inline_response_200_1:
+      required:
+      - msisdn
+      - resultCode
+      - resultDescription
+      type: object
+      properties:
+        msisdn:
+          type: string
+          description: User’s mobile number in an international format
+          example: "22677691111"
+        resultCode:
+          type: string
+          description: Result code of the executed transaction
+          example: "00"
+        resultDescription:
+          type: string
+          description: Description of the provided result code
+          example: Successful
+    inline_response_200:
+      required:
+      - eligibleOffers
+      - msisdn
+      - resultCode
+      - resultDescription
+      type: object
+      properties:
+        msisdn:
+          type: string
+          description: User’s mobile number in an international format
+          example: "22177691111"
+        maxEligibleAmount:
+          type: number
+          description: Maximum amount customer is eligible for
+          format: decimal
+        eligibleOffers:
+          type: array
+          description: Array of structs
+          items:
+            $ref: '#/components/schemas/inline_response_200_eligibleOffers'
+        resultCode:
+          type: string
+          description: Result code of the executed transaction
+          example: "00"
+        resultDescription:
+          type: string
+          description: Description of the provided result code
+          example: Successful
+      example:
+        msisdn: 22177691111
+        eligibleOffers:
+        - productId: 101
+          offers:
+          - amount: 50000.0
+            serviceFee: 585.0
+            interestFee: 87.75
+            dueDates:
+            - 2022-01-17T195910.5181997+0100
+            installmentAmount: 50672.75
+            totalRepaymentAmount: 50672.75
+        - productId: 1060
+          offers:
+          - amount: 50000.0
+            serviceFee: 500.0
+            interestFee: 164.38
+            dueDates:
+            - 2022-01-17T195910.5181997+0100
+            - 2022-02-17T195910.5181997+0100
+            installmentAmount: 25332.19
+            totalRepaymentAmount: 50664.38
+        - productId: 1090
+          offers:
+          - amount: 50000.0
+            serviceFee: 500.0
+            interestFee: 701.27
+            dueDates:
+            - 2022-01-17T195910.5181997+0100
+            - 2022-02-17T195910.5181997+0100
+            - 2022-03-17T195910.5181997+0100
+            installmentAmount: 17400.42
+            totalRepaymentAmount: 51201.27
+        resultCode: "00"
+        resultDescription: Successful
+    inline_response_200_eligibleOffers:
+      required:
+      - offers
+      - productId
+      properties:
+        productId:
+          type: integer
+          description: Product identifier
+          example: 101
+        offers:
+          type: array
+          description: Array of offers
+          items:
+            $ref: '#/components/schemas/inline_response_200_offers'
+    checkEligibility_body:
+      required:
+      - channel
+      - msisdn
+      - requestId
+      - sessionId
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Unique request ID in client's system
+          example: momo-202112170001371256907
+        sessionId:
+          type: string
+          description: Unique identifier of session in client's system
+          example: ses-202112170001354325213
+        msisdn:
+          type: string
+          description: User’s mobile number in an international format
+          example: "22177691111"
+        channel:
+          type: string
+          description: |
+            Request Channel
+            * ussd - USSD channel
+            * sms - SMS channel
+            * app - Mobile Application channel
+            * web - WEB application channel
+            * other - Other request channel
+          example: ussd
+      example:
+        requestId: momo-202112170001371256907
+        sessionId: ses-202112170001354325213
+        msisdn: "22177691111"
+        channel: ussd
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
